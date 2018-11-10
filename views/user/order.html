@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <?php view('common.nav') ?>
+    <h1>订单列表</h1>
+
+    <table border="1" width="100%"> 
+        <tr>
+            <th>ID</th>
+            <th>订单编号</th>
+            <th>下单时间</th>
+            <th>订单状态</th>
+            <th>支付时间</th>
+            <th>操作</th>
+        </tr>
+
+        <?php foreach($data as $v): ?>
+        <tr>
+            <td><?=$v['id']?></td>
+            <td><?=$v['sn']?></td>
+            <td><?=$v['created_at']?></td>
+            <td><?=$v['is_paid']==0 ? '未支付' :($v['is_paid']==1 ? '已支付' :'已退款') ?></td>
+            <td><?=$v['pay_time']?></td>
+            <td>
+                <?php if($v['is_paid']==0): ?>
+                    <form action="/alipay/pay" target="_blank" method="post">
+                        <input type="hidden" name="_token" value="<?=csrf()?>">
+                        <input type="hidden" name="sn" value="<?=$v['sn']?>">
+                        <input type="submit" value="支付宝支付">
+                    </form>
+                    <form target="_blank" action="/wxpay/pay" method="post">
+                        <input type="hidden" name="_token" value="<?=csrf()?>">
+                        <input type="hidden" name="sn" value="<?=$v['sn']?>">
+                        <input type="submit" value="微信支付">
+                    </form>
+                <?php endif; ?>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+
+    </table>    
+    <br>
+    <?=$btns?>
+
+    <?php view('common.footer') ?>
+
+</body>
+</html>

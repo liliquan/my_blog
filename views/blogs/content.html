@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><?=$blog['title']?></title>
+    <style>
+        .agree-list {
+            border: 1px solid skyblue;
+            padding: 0;
+            text-align: center;
+        }
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid skyblue;
+            padding: 5px;
+            margin-left: 20px;
+        }
+        .agree-list h3 {
+            padding: 0;
+            margin-top: 0;
+            background-color: #EEE;
+            padding: 5px;
+        }
+        .comment_list{
+            border:1px solid skyblue;
+            margin-top: 20px;
+            padding: 10px;
+        }
+        .comment_list .left{
+            float: left;
+            text-align: center;
+            width: 15%;
+        }
+        .comment_list .right{
+            float: left;
+            font-size: 14px;
+            margin-left: 10px;
+            width: 75%;
+        }
+        .comment_list .left img{
+            border-radius: 50%;
+        }
+        .comment_list .date{
+            color: #999;
+            margin-top: 20px;
+        }
+        .clearfix{
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+    
+        <h1>智聊系统</h1>
+        <div id="menu"></div>
+
+
+        <h1><?=$blog['title']?></h1>
+        <p>浏览量：<span id="display"></span></p>
+        <p><?=$blog['content']?></p>
+
+        <img src="/images/agree.jpeg" id="btn-agree" style="cursor: pointer; width:120px;" alt="">
+
+        <div class="agree-list">
+            <h3>点赞列表</h3>
+            <div id="avatar-list"></div>
+        </div>
+
+    <div id="comment_app">
+
+        <h3>点赞列表</h3>
+
+        <div class="comment_list" v-for="(v,k) in comment">
+            <div class="left">
+                <img :src="v.avatar" width="50" height="50" alt="">
+                <p>{{ v.email }}</p>
+            </div>
+            <div class="right">
+                <div class="con">
+                    {{ v.content }}
+                </div>
+                <div class="date">
+                    {{ v.created_at }}
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+
+        <br><br>
+
+        <form action="">
+            <textarea v-model="content" cols="60" rows="10"></textarea>
+            <br>
+            <input @click="submit" type="button" value="发表评论">
+        </form>
+
+        <?php view('common.footer') ?>
+    </div>
+</body>
+</html>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+
+<script>
+/**  更新浏览量，并且获取登录状态 **/
+// 获取当前日志的ID
+var id = "<?=$blog['id']?>";
+// 定义接口地址
+var url = "/blog/display?id=" + id;
+// 请求这个地址
+$.ajax({
+    type:"GET",
+    url:url,
+    dataType:'json',  // 声明服务器返回的是JSON（解析JSON）
+    success:function(data)
+    {
+        // 把返回的浏览量放到页面
+        $("#display").html(data.display);
+
+        // 拼按钮的字符串
+        // 无论登录否都有一个首页的按钮
+        var html = '<a href="/">首页</a>';
+        // 判断登录
+        if(data.email == '')
+        {
+            // js 中定义多行字符串时要使用 ` （反引号 1左边的键子）
+            html += ` <a href="/user/register">注册</a> 
+                      <a href="/user/login">登录</a>`;
+        }
+        else
+        {
+            html += data.email + 
+                    ` <a href="/blog/index">日志列表</a> 
+                      <a href="/blog/create">发表日志</a> 
+                      <a href="/user/login">退出</a>`;
+        }
+
+        // 获取id=menu的div 并把按钮放进去
+        $("#menu").html(html);
+    }
+});
+
+$("#btn-agree").click(function(){
+    $.ajax({
+        type:"POST",
+        url:"/blog/aggrements?id="+id,
+        dataType:"json",
+        success:function(data)
+        {
+            if(data.status_code == 200)
+            {
+                alert('成功~');
+            }
+            else
+            {
+                alert(data.message);
+            }
+        }
+    });
+});
+
+$.ajax({
+    type:"GET",
+    url:"/blog/agreements_list?id="+id,
+    dataType:"json",
+    success:function(data)
+    {
+        if(data.status_code == 200)
+        {
+            var html = '';
+            for(var i=0; i<data.data.length; i++)
+            {
+                var avatar = data.data[i].avatar ? data.data[i].avatar : '/images/avatar.jpg';
+                html += '<img title="'+data.data[i].email+'" class="avatar" src="'+avatar+'" alt="">';
+            }
+            // 把字符串放到页面
+            $("#avatar-list").html( html )
+        }
+    }
+});
+
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    new Vue({
+        el:"#comment_app",
+        data:{
+            content:'',
+            blog_id:"<?=$blog['id']?>",
+            // 评论列表的数据
+            comment:[]
+        },
+
+        // 在创建完 Vue 之后执行
+        created: function(){
+            // 获取初始数据
+            axios.get('/comment/comment_list?id='+id)
+                .then(res => {
+                    
+                    if( res.data.status_code == 200)
+                    {
+
+                        // 把服务器返回的数据放到绑定的数组上，会自动更新到页面
+                        this.comment = res.data.data
+                    }
+                })
+        },
+        // 定义函数
+        methods:{
+            submit:function(){
+                // 执行AJAX 发表评论
+                axios.post('/comment/comments',{
+                    content:this.content,
+                    blog_id:this.blog_id
+                })
+                .then(res=>{
+                    // 执行AJAX以后执行这段
+                    if(res.data.status_code == 200)
+                    {   
+                        this.comment.unshift({
+                            email : res.data.data.email,
+                            content : res.data.data.content,
+                            created_at : res.data.data.created_at,
+                            avatar : res.data.data.avatar,
+                        })
+                        this.content = ''
+                    }
+                    else
+                    {
+                        alert(res.data.message)
+                    }
+                })
+            }
+        }  
+    })
+</script>
