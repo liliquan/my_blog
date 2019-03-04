@@ -3,6 +3,7 @@ namespace controllers;
 use models\User;
 use models\Order;
 use libs\Redis;
+use Intervention\Image\ImageManagerStatic as Image;
 
 	class UserController
 	{
@@ -80,9 +81,10 @@ use libs\Redis;
 		{
 			$upload = \libs\Uploader::make();
 			$path = $upload->upload('avatar', 'avatar');
-			
+			// var_dump($path);
 			// 裁切图片
 			$image = Image::make(ROOT . 'public/uploads/'.$path);
+			var_dump($image);
 			// 注意：Crop 参数必须是整数，所以需要转成整数：(int)
 			$image->crop((int)$_POST['w'], (int)$_POST['h'], (int)$_POST['x'], (int)$_POST['y']);
 			// 保存时覆盖原图

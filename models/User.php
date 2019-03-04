@@ -90,6 +90,7 @@ use PDO;
 		public function setAvatar($path)
 		{
 			$stmt = self::$pdo->prepare('UPDATE users SET avatar=? WHERE id=?');
+			
 			$stmt->execute([
 				$path,
 				$_SESSION['id'],

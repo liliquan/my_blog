@@ -3,7 +3,7 @@
 $host = '127.0.0.1';
 $dbname = 'blog';
 $user = 'root';
-$pass = '';
+$pass = '123456';
 
 // 连接数据库
 $pdo = new PDO("mysql:host={$host};dbname={$dbname}",$user,$pass);

@@ -1,18 +1,20 @@
 <?php
+
 ini_set('session.save_handler', 'redis');   // 使用 redis 保存 SESSION
 ini_set('session.save_path', 'tcp://127.0.0.1:6379?database=3');  // 设置 redis 服务器的地址、端口、使用的数据库    
 // ini_set('session.gc_maxlifetime', 600);   // 设置 SESSION 10分钟过期
+
 session_start();
 
 
-// if($_SERVER['REQUEST_METHOD'] == 'POST')
-// {
-//     if(!isset($_POST['_token']))
-//         die('违法操作！');
+if($_SERVER['REQUEST_METHOD'] == 'POST')
+{
+    if(!isset($_POST['_token']))
+        die('违法操作！');
 
-//     if($_POST['_token'] != $_SESSION['token'])
-//         die('违法操作！');
-// }
+    if($_POST['_token'] != $_SESSION['token'])
+        die('违法操作！');
+}
 
 // 定义常量  
 // __FILE__是PHP中的魔术常量，代表当前文件的绝对路径
@@ -23,14 +25,16 @@ define('ROOT', dirname(__FILE__) . '/../');
 require(ROOT.'vendor/autoload.php');
 
 // 实现类的自动加载  使用   spl_autoload_register   函数
-// 这个函数的功能就是  我们可以使用这个函数注册一个我们自己定义的函数，当PHP在使用一个类时，如果这个类文件没有被加载，那么被注册的函数就调用了，并把这个类的名字传给这个函数，然后我们就可以写代码在函数中加载类文件
+// 这个函数的功能就是  我们可以使用这个函数注册一个我们自己定义的函数，
+// 当PHP在使用一个类时，如果这个类文件没有被加载，那么被注册的函数就调用了，
+// 并把这个类的名字传给这个函数，然后我们就可以写代码在函数中加载类文件
 function  autoLoad($class)
 {
 
 	$path = str_replace('\\','/',$class);
+	// var_dump(ROOT.$path.'.php');
 	require (ROOT . $path .'.php');
 } 
-
 spl_autoload_register('autoLoad');
 
 
